@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>あさのじゅんび</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="あさのじゅんび">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#EAF1F5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1C28" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{
+  --bg:#EAF1F5; --surface:#FFFFFF; --ink:#16324A; --sub:#5B7186; --line:#D3DFE7;
+  --accent:#136F78; --accent-ink:#FFFFFF; --ok:#2E8B57; --warn:#C98A00; --bad:#D2466B;
+  --ring-bg:#D9E6EC;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    --bg:#0E1C28; --surface:#162837; --ink:#E5EEF4; --sub:#9AB0C1; --line:#25394A;
+    --accent:#3DB3BD; --accent-ink:#06222A; --ok:#5CCB8C; --warn:#F0BE45; --bad:#FF7896;
+    --ring-bg:#22384A;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{
+  font-family:"Hiragino Maru Gothic ProN","BIZ UDPGothic","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+.num{font-variant-numeric:tabular-nums}
+#app{max-width:480px;margin:0 auto;padding:16px 18px 40px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.clock{font-size:1.5rem;font-weight:700;letter-spacing:.02em}
+.seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--sub);font:inherit;font-size:.9rem;padding:6px 14px;border-radius:999px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+button{cursor:pointer;font:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.hero{margin:8px 0 22px}
+.hero .big{font-size:2.6rem;font-weight:800;line-height:1.15}
+.hero p{margin:6px 0 0;color:var(--sub)}
+.hero strong{color:var(--ink)}
+.plan{list-style:none;margin:0 0 24px;padding:0;border-left:3px solid var(--line);margin-left:6px}
+.plan li{position:relative;padding:6px 0 6px 18px;display:flex;justify-content:space-between;gap:12px}
+.plan li::before{content:"";position:absolute;left:-8px;top:14px;width:13px;height:13px;border-radius:50%;background:var(--surface);border:3px solid var(--accent)}
+.plan li.goal::before{background:var(--accent)}
+.plan .t{color:var(--sub);min-width:3.2em}
+.plan .n{flex:1}
+.plan .m{color:var(--sub);font-size:.9rem}
+.primary{display:block;width:100%;border:0;border-radius:16px;background:var(--accent);color:var(--accent-ink);font-size:1.25rem;font-weight:800;padding:16px}
+.ghost{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:10px 16px}
+.row{display:flex;gap:10px;margin-top:12px}
+.row > *{flex:1}
+.status{border-radius:14px;padding:10px 14px;margin-bottom:10px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--surface);border:2px solid var(--ok)}
+.status.warn{border-color:var(--warn)} .status.bad{border-color:var(--bad)}
+.status .lbl{color:var(--sub);font-weight:400;font-size:.85rem}
+.status .val{font-size:1.1rem}
+.hint{font-size:.9rem;color:var(--sub);margin:0 0 6px;min-height:1.4em}
+.stage{display:flex;flex-direction:column;align-items:center;margin:8px 0 6px}
+.ringwrap{position:relative;width:min(78vw,300px);aspect-ratio:1}
+.ringwrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ringwrap circle{fill:none;stroke-width:14}
+.ringwrap .bgc{stroke:var(--ring-bg)}
+.ringwrap .fg{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .3s linear}
+.ringwrap.over .fg{stroke:var(--bad)}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.center .stepname{font-size:1.9rem;font-weight:800;line-height:1.2;padding:0 30px}
+.center .remain{font-size:3rem;font-weight:800;line-height:1.1;margin-top:4px}
+.ringwrap.over .remain{color:var(--bad)}
+.center .of{color:var(--sub);font-size:.85rem}
+.next{list-style:none;padding:0;margin:18px 0 0}
+.next li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.next .nm{flex:1}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--sub);border-radius:999px;padding:4px 10px;font-size:.85rem}
+.chip[aria-pressed="true"]{background:var(--warn);border-color:var(--warn);color:#2A1E00;font-weight:700}
+.done{text-align:center;padding-top:30px}
+.done .big{font-size:2.2rem;font-weight:800}
+.done .cd{font-size:3.4rem;font-weight:800;margin:10px 0}
+.done p{color:var(--sub)}
+h2{font-size:1.3rem;margin:0 0 12px}
+.field{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0}
+.field label{flex:1}
+input{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+input[type=number]{width:4.2em;text-align:center}
+.steprow{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.steprow .top{display:flex;gap:8px;align-items:center}
+.steprow .top input{flex:1;min-width:0}
+.steprow .bot{display:flex;gap:12px;align-items:center;margin-top:8px;font-size:.9rem;color:var(--sub);flex-wrap:wrap}
+.icon{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;width:36px;height:36px;padding:0}
+.note{font-size:.85rem;color:var(--sub);margin-top:14px}
+@media (prefers-reduced-motion: reduce){.ringwrap .fg{transition:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const DEFAULTS = {
+  current: 'normal',
+  modes: {
+    normal: { label:'通常の日', target:'07:40', limit:'07:50', steps:[
+      {name:'顔を洗う', min:1, short:1},
+      {name:'朝ごはん', min:15, short:8},
+      {name:'着替え', min:10, short:10},
+      {name:'前髪', min:10, short:5},
+      {name:'目', min:10, short:0},
+    ]},
+    bukatsu: { label:'朝練の日', target:'07:10', limit:'07:15', steps:[
+      {name:'顔を洗う', min:1, short:1},
+      {name:'着替え', min:10, short:10},
+      {name:'前髪', min:5, short:5},
+      {name:'荷物チェック', min:5, short:3},
+    ]}
+  }
+};
+let settings = JSON.parse(JSON.stringify(DEFAULTS));
+let view = 'home';
+let run = null;
+let draft = null;
+let actx = null;
+let wakeLock = null;
+const app = document.getElementById('app');
+
+/* ---------- storage ---------- */
+const KEY = 'asanojunbi-settings';
+async function load(){
+  try{
+    const v = localStorage.getItem(KEY);
+    if(v){ settings = JSON.parse(v); return; }
+  }catch(e){}
+  try{
+    if(window.storage){
+      const r = await window.storage.get(KEY, false);
+      if(r && r.value) settings = JSON.parse(r.value);
+    }
+  }catch(e){}
+}
+async function save(){
+  const v = JSON.stringify(settings);
+  try{ localStorage.setItem(KEY, v); return; }catch(e){}
+  try{ if(window.storage) await window.storage.set(KEY, v, false); }catch(e){}
+}
+
+/* ---------- helpers ---------- */
+const mode = () => settings.modes[settings.current];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function todayAt(hhmm){ const [h,m] = hhmm.split(':').map(Number); const d = new Date(); d.setHours(h,m,0,0); return d.getTime(); }
+function hm(ms){ const d = new Date(ms); return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
+function mmss(ms){ const neg = ms<0; ms = Math.abs(ms); const s = Math.floor(ms/1000); return (neg?'+':'')+Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+const dur = (s, short) => (short ? s.short : s.min) * 60000;
+
+/* ---------- sound / wake ---------- */
+function ensureAudio(){
+  try{ if(navigator.audioSession) navigator.audioSession.type = 'playback'; }catch(e){}
+  try{ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); if(actx.state==='suspended') actx.resume(); }catch(e){} }
+function beep(times=3){
+  if(navigator.vibrate) navigator.vibrate([200,100,200]);
+  if(!actx) return;
+  const t0 = actx.currentTime;
+  for(let i=0;i<times;i++){
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.frequency.value = 880; o.connect(g); g.connect(actx.destination);
+    const t = t0 + i*0.35;
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.4,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.25);
+    o.start(t); o.stop(t+0.3);
+  }
+}
+async function keepAwake(){ try{ if('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); }catch(e){} }
+document.addEventListener('visibilitychange', () => { if(document.visibilityState==='visible' && run) keepAwake(); });
+
+/* ---------- header ---------- */
+function header(){
+  const m = settings.current;
+  return `<header>
+    <div class="clock num" id="clock">${hm(Date.now())}</div>
+    <div class="seg" role="group" aria-label="日の種類">
+      <button data-act="mode" data-mode="normal" aria-pressed="${m==='normal'}" ${run?'disabled':''}>${esc(settings.modes.normal.label)}</button>
+      <button data-act="mode" data-mode="bukatsu" aria-pressed="${m==='bukatsu'}" ${run?'disabled':''}>${esc(settings.modes.bukatsu.label)}</button>
+    </div>
+  </header>`;
+}
+
+/* ---------- home ---------- */
+function renderHome(){
+  const md = mode();
+  const target = todayAt(md.target);
+  const total = md.steps.reduce((a,s)=>a+s.min*60000,0);
+  let t = target - total;
+  const startBy = t;
+  const items = md.steps.map(s => { const li = `<li><span class="t num">${hm(t)}</span><span class="n">${esc(s.name)}</span><span class="m num">${s.min}分</span></li>`; t += s.min*60000; return li; }).join('');
+  app.innerHTML = header() + `
+    <section class="hero">
+      <div class="big num">${hm(target)}に出発</div>
+      <p><strong class="num">${hm(startBy)}</strong>までにスタートすれば間に合います。最終ラインは<span class="num">${hm(todayAt(md.limit))}</span>。</p>
+    </section>
+    <ol class="plan">${items}<li class="goal"><span class="t num">${hm(target)}</span><span class="n"><strong>出発</strong></span><span class="m"></span></li></ol>
+    <button class="primary" data-act="start">スタート</button>
+    <div class="row"><button class="ghost" data-act="test">音を試す</button><button class="ghost" data-act="edit">ルーティンを編集</button></div>
+    ${navigator.audioSession ? '' : '<p class="note">この端末・ブラウザでは、マナーモード中は音が鳴らない可能性があります。</p>'}`;
+}
+
+/* ---------- run ---------- */
+function startRun(){
+  ensureAudio(); keepAwake();
+  run = { idx:0, stepStart:Date.now(), short:mode().steps.map(()=>false), alerted:false, finished:false, goalAlerted:false };
+  skipZero();
+  view = 'run'; render();
+}
+function skipZero(){
+  const st = mode().steps;
+  while(run.idx < st.length && dur(st[run.idx], run.short[run.idx]) === 0) run.idx++;
+  if(run.idx >= st.length) run.finished = true;
+}
+function nextStep(){
+  run.idx++; run.stepStart = Date.now(); run.alerted = false;
+  skipZero(); render();
+}
+function renderRun(){
+  const st = mode().steps;
+  if(run.finished){ renderDone(); return; }
+  const s = st[run.idx];
+  const upcoming = st.map((x,i)=>({x,i})).filter(o=>o.i>run.idx).map(o =>
+    `<li><span class="nm">${esc(o.x.name)}</span><span class="num" style="color:var(--sub)">${run.short[o.i]?o.x.short:o.x.min}分</span>
+     ${o.x.short<o.x.min?`<button class="chip" data-act="short" data-i="${o.i}" aria-pressed="${run.short[o.i]}">${o.x.short===0?'今日はなし':'短縮 '+o.x.short+'分'}</button>`:''}</li>`).join('');
+  app.innerHTML = header() + `
+    <div class="status" id="status"><span class="lbl">出発見込み</span><span class="val num" id="proj"></span></div>
+    <p class="hint" id="hint"></p>
+    <div class="stage">
+      <div class="ringwrap" id="ring">
+        <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="bgc" cx="100" cy="100" r="88"/><circle class="fg" id="fg" cx="100" cy="100" r="88" stroke-dasharray="552.9" stroke-dashoffset="0"/></svg>
+        <div class="center">
+          <div class="of num">${run.idx+1} / ${st.length}</div>
+          <div class="stepname">${esc(s.name)}</div>
+          <div class="remain num" id="remain" aria-live="off"></div>
+        </div>
+      </div>
+    </div>
+    <button class="primary" data-act="next">${esc(s.name)}おわり</button>
+    <div class="row">
+      ${s.short<s.min && !run.short[run.idx] ? `<button class="ghost" data-act="shortnow">${s.short===0?'今日はなしにする':'短縮版（'+s.short+'分）にする'}</button>` : ''}
+      <button class="ghost" data-act="stop">中止</button>
+    </div>
+    ${upcoming?`<ul class="next">${upcoming}</ul>`:''}`;
+  tick();
+}
+function renderDone(){
+  app.innerHTML = header() + `
+    <section class="done">
+      <div class="big">準備かんりょう</div>
+      <div class="cd num" id="cd"></div>
+      <p id="donehint"></p>
+      <button class="primary" data-act="stop" style="margin-top:20px">出発した</button>
+    </section>`;
+  tick();
+}
+
+/* ---------- tick ---------- */
+function tick(){
+  const now = Date.now();
+  const c = document.getElementById('clock'); if(c) c.textContent = hm(now);
+  if(view!=='run' || !run) return;
+  const md = mode(), st = md.steps, target = todayAt(md.target), limit = todayAt(md.limit);
+
+  if(run.finished){
+    const left = target - now;
+    const cd = document.getElementById('cd'), h = document.getElementById('donehint');
+    if(cd){
+      if(left > 0){ cd.textContent = 'あと ' + Math.ceil(left/60000) + '分'; h.textContent = hm(target)+'の出発まで自由時間。スマホはここで。'; }
+      else { cd.textContent = '出発の時間'; h.textContent = '最終ラインは'+hm(limit)+'です。'; if(!run.goalAlerted){ run.goalAlerted = true; beep(5); } }
+    }
+    return;
+  }
+
+  const s = st[run.idx], d = dur(s, run.short[run.idx]);
+  const remain = d - (now - run.stepStart);
+  if(remain <= 0 && !run.alerted){ run.alerted = true; beep(3); }
+  let proj = now + Math.max(0, remain);
+  let recover = 0;
+  for(let i=run.idx+1;i<st.length;i++){ proj += dur(st[i], run.short[i]); if(!run.short[i]) recover += st[i].min - st[i].short; }
+  if(!run.short[run.idx]) recover += s.min - s.short;
+  const slack = Math.round((target - proj)/60000);
+
+  document.getElementById('remain').textContent = mmss(remain);
+  const frac = Math.max(0, Math.min(1, remain / d));
+  document.getElementById('fg').setAttribute('stroke-dashoffset', String(552.9 * (1 - frac)));
+  document.getElementById('ring').classList.toggle('over', remain < 0);
+
+  const stEl = document.getElementById('status'), pj = document.getElementById('proj'), hint = document.getElementById('hint');
+  stEl.classList.remove('warn','bad');
+  if(proj <= target){
+    pj.textContent = hm(proj) + (slack>0 ? `（${slack}分よゆう）` : '（ぴったり）');
+    hint.textContent = remain < 0 ? '時間をすぎています。終わったら「おわり」を。' : '';
+  } else if(proj <= limit){
+    stEl.classList.add('warn');
+    pj.textContent = hm(proj) + `（目標より${-slack}分おそい）`;
+    hint.textContent = recover>0 ? `短縮版を使うと最大${recover}分取り戻せます。` : '最終ラインにはまだ間に合います。';
+  } else {
+    stEl.classList.add('bad');
+    pj.textContent = hm(proj) + '（最終ラインに間に合わない）';
+    hint.textContent = recover>0 ? `短縮版で最大${recover}分取り戻せます。下の「短縮」を押してみて。` : '急いで次へ進みましょう。';
+  }
+}
+setInterval(tick, 250);
+
+/* ---------- edit ---------- */
+function renderEdit(){
+  const rows = draft.steps.map((s,i)=>`
+    <div class="steprow">
+      <div class="top">
+        <input type="text" value="${esc(s.name)}" data-f="name" data-i="${i}" aria-label="工程名">
+        <button class="icon" data-act="up" data-i="${i}" aria-label="上へ" ${i===0?'disabled':''}>↑</button>
+        <button class="icon" data-act="down" data-i="${i}" aria-label="下へ" ${i===draft.steps.length-1?'disabled':''}>↓</button>
+        <button class="icon" data-act="del" data-i="${i}" aria-label="削除">✕</button>
+      </div>
+      <div class="bot">
+        <label>ふつう <input type="number" min="0" max="120" value="${s.min}" data-f="min" data-i="${i}"> 分</label>
+        <label>短縮 <input type="number" min="0" max="120" value="${s.short}" data-f="short" data-i="${i}"> 分</label>
+      </div>
+    </div>`).join('');
+  app.innerHTML = `
+    <h2>${esc(draft.label)}のルーティン</h2>
+    <div class="field"><label for="tg">出発の目標</label><input id="tg" type="time" value="${draft.target}" data-f="target"></div>
+    <div class="field"><label for="lm">最終ライン</label><input id="lm" type="time" value="${draft.limit}" data-f="limit"></div>
+    <div style="margin-top:14px">${rows}</div>
+    <button class="ghost" data-act="add" style="width:100%">工程を追加</button>
+    <p class="note">短縮を0分にすると、遅れたときに「今日はなし」にできます。</p>
+    <div class="row"><button class="ghost" data-act="cancel">やめる</button><button class="primary" data-act="saveedit" style="font-size:1rem;padding:12px">保存する</button></div>
+    <div class="row"><button class="ghost" data-act="reset">最初の設定に戻す</button></div>`;
+}
+app.addEventListener('input', e => {
+  if(view!=='edit') return;
+  const f = e.target.dataset.f; if(!f) return;
+  const i = e.target.dataset.i;
+  if(f==='target' || f==='limit'){ draft[f] = e.target.value; return; }
+  const s = draft.steps[+i];
+  if(f==='name') s.name = e.target.value;
+  else s[f] = Math.max(0, Math.min(120, parseInt(e.target.value,10) || 0));
+});
+
+/* ---------- actions ---------- */
+app.addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b || b.disabled) return;
+  const act = b.dataset.act, i = +b.dataset.i;
+  switch(act){
+    case 'mode': settings.current = b.dataset.mode; save(); render(); break;
+    case 'start': startRun(); break;
+    case 'test': ensureAudio(); beep(2); break;
+    case 'next': nextStep(); break;
+    case 'shortnow': run.short[run.idx] = true; if(mode().steps[run.idx].short===0) nextStep(); else render(); break;
+    case 'short': run.short[i] = !run.short[i]; render(); break;
+    case 'stop': run = null; view = 'home'; if(wakeLock){ wakeLock.release().catch(()=>{}); wakeLock = null; } render(); break;
+    case 'edit': draft = JSON.parse(JSON.stringify(mode())); view = 'edit'; render(); break;
+    case 'up': [draft.steps[i-1], draft.steps[i]] = [draft.steps[i], draft.steps[i-1]]; renderEdit(); break;
+    case 'down': [draft.steps[i+1], draft.steps[i]] = [draft.steps[i], draft.steps[i+1]]; renderEdit(); break;
+    case 'del': draft.steps.splice(i,1); renderEdit(); break;
+    case 'add': draft.steps.push({name:'新しい工程', min:5, short:5}); renderEdit(); break;
+    case 'cancel': view = 'home'; render(); break;
+    case 'saveedit':
+      draft.steps = draft.steps.filter(s => s.name.trim()).map(s => ({...s, short: Math.min(s.short, s.min)}));
+      settings.modes[settings.current] = draft; save(); view = 'home'; render(); break;
+    case 'reset':
+      draft = JSON.parse(JSON.stringify(DEFAULTS.modes[settings.current])); renderEdit(); break;
+  }
+});
+
+function render(){
+  if(view==='home') renderHome();
+  else if(view==='run') renderRun();
+  else renderEdit();
+}
+load().then(render);
+</script>
+</body>
+</html>
